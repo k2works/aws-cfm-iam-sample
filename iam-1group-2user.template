@@ -1,0 +1,100 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "AWS CloudFormation Sample Template. ",
+
+  "Parameters" : {
+    "Password": {
+      "NoEcho": "true",
+      "Type": "String",
+      "Description" : "New account password",
+      "MinLength": "1",
+      "MaxLength": "41",
+      "ConstraintDescription" : "the password must be between 1 and 41 characters"
+    }
+  },
+
+  "Resources" : {
+    "User1" : {
+      "Type" : "AWS::IAM::User",
+      "Properties" : {
+        "LoginProfile": {
+          "Password": { "Ref" : "Password" }
+        }
+      }
+    },
+
+    "User2" : {
+      "Type" : "AWS::IAM::User",
+      "Properties" : {
+        "LoginProfile": {
+          "Password": { "Ref" : "Password" }
+        }
+      }
+    },
+
+    "AdminGroup" : {
+      "Type" : "AWS::IAM::Group",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AdministratorAccess"
+        ]
+      }
+    },
+
+    "Admins" : {
+      "Type" : "AWS::IAM::UserToGroupAddition",
+      "Properties" : {
+        "GroupName": { "Ref" : "AdminGroup" },
+        "Users" : [ { "Ref" : "User1" } ]
+      }
+    },
+
+    "AdminPolicies" : {
+      "Type" : "AWS::IAM::Policy",
+      "Properties" : {
+        "PolicyName" : "Admins",
+        "PolicyDocument" : {
+          "Statement": [{
+            "Effect"   : "Allow",
+            "Action"   : "*",
+            "Resource" : "*"
+          }]
+        },
+        "Groups" : [{ "Ref" : "AdminGroup" }]
+      }
+    },
+
+    "User1Keys" : {
+      "Type" : "AWS::IAM::AccessKey",
+      "Properties" : {
+        "UserName" : { "Ref": "User1" }
+      }
+    },
+    "User2Keys" : {
+      "Type" : "AWS::IAM::AccessKey",
+      "Properties" : {
+        "UserName" : { "Ref": "User2" }
+      }
+    }
+  },
+
+  "Outputs" : {
+    "User1AccessKey" : {
+      "Value" : { "Ref" : "User1Keys" },
+      "Description" : "AWSAccessKeyId of new user"
+    },
+    "User1SecretKey" : {
+      "Value" : { "Fn::GetAtt" : ["User1Keys", "SecretAccessKey"]},
+      "Description" : "AWSSecretKey of new user"
+    },
+    "User2AccessKey" : {
+      "Value" : { "Ref" : "User2Keys" },
+      "Description" : "AWSAccessKeyId of new user"
+    },
+    "User2SecretKey" : {
+      "Value" : { "Fn::GetAtt" : ["User2Keys", "SecretAccessKey"]},
+      "Description" : "AWSSecretKey of new user"
+    }
+  }
+}
